@@ -9,12 +9,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
  && rm -rf /var/lib/apt/lists/*
 
-# Fonte Nunito (Google Fonts, OFL) — usada pelo build_guest_card.py em Linux
+# Fontes (Google Fonts OFL) — Mulish é a mais próxima de Avenir Next (usada em macOS dev)
+# Mantém o layout das cartas idêntico ao baralho original
 RUN mkdir -p /fonts && \
-    curl -sSL https://github.com/google/fonts/raw/main/ofl/nunito/Nunito%5Bwght%5D.ttf \
-      -o /fonts/Nunito-Regular.ttf && \
-    curl -sSL https://github.com/google/fonts/raw/main/ofl/nunito/Nunito-Italic%5Bwght%5D.ttf \
-      -o /fonts/Nunito-Italic.ttf
+    curl -sSL https://github.com/google/fonts/raw/main/ofl/mulish/Mulish%5Bwght%5D.ttf \
+      -o /fonts/Mulish-Regular.ttf && \
+    curl -sSL https://github.com/google/fonts/raw/main/ofl/mulish/Mulish-Italic%5Bwght%5D.ttf \
+      -o /fonts/Mulish-Italic.ttf && \
+    # Manrope como fallback secundário (igual ao usado nas LPs Brincando com Fé)
+    curl -sSL https://github.com/google/fonts/raw/main/ofl/manrope/Manrope%5Bwght%5D.ttf \
+      -o /fonts/Manrope-Regular.ttf
 
 WORKDIR /app
 

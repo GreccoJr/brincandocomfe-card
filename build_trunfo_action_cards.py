@@ -23,12 +23,14 @@ OUT = os.path.join(BASE, "trunfo_action_out")
 os.makedirs(OUT, exist_ok=True)
 W, H = 760, 1060
 GOLD = (238, 202, 128); GOLD_HI = (255, 226, 150); WHITE = (255, 255, 255)
-# Tenta Avenir Next (macOS dev) → senão usa Nunito (incluída no Docker em /fonts/)
+# Ordem de prioridade de fontes (mais próximas de Avenir Next primeiro)
 def _find_font():
     candidates = [
-        "/System/Library/Fonts/Avenir Next.ttc",                      # macOS dev
-        "/fonts/Nunito-Regular.ttf",                                    # Docker prod
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",             # Linux fallback
+        "/System/Library/Fonts/Avenir Next.ttc",                       # macOS dev (referência original)
+        "/fonts/Mulish-Regular.ttf",                                    # Docker prod — geometric humanist próxima de Avenir
+        "/fonts/Manrope-Regular.ttf",                                   # Docker fallback
+        "/fonts/Nunito-Regular.ttf",                                    # Docker legacy
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",              # Linux fallback
         "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
     ]
     for path in candidates:
@@ -48,17 +50,22 @@ def font(sz, bold=False):
             except Exception:
                 pass
         return ImageFont.truetype(AV, sz)
-    # Linux: tenta variante Bold se existir
+    # Mulish/Manrope/Nunito são variable fonts — peso configurável via font_variation_settings
+    f = ImageFont.truetype(AV, sz)
     if bold:
-        bold_candidates = [
-            AV.replace("Regular", "Bold"),
-            AV.replace("DejaVuSans.ttf", "DejaVuSans-Bold.ttf"),
-            AV.replace("LiberationSans-Regular.ttf", "LiberationSans-Bold.ttf"),
-        ]
-        for b in bold_candidates:
-            if b != AV and os.path.exists(b):
-                return ImageFont.truetype(b, sz)
-    return ImageFont.truetype(AV, sz)
+        try:
+            f.set_variation_by_axes([700])  # weight=Bold
+        except Exception:
+            # variant axes não suportados — tenta variante Bold em arquivo separado
+            bold_candidates = [
+                AV.replace("Regular", "Bold"),
+                AV.replace("DejaVuSans.ttf", "DejaVuSans-Bold.ttf"),
+                AV.replace("LiberationSans-Regular.ttf", "LiberationSans-Bold.ttf"),
+            ]
+            for b in bold_candidates:
+                if b != AV and os.path.exists(b):
+                    return ImageFont.truetype(b, sz)
+    return f
 
 
 def tsh(d, xy, txt, fnt, fill, anchor="mm", shadow=150):
