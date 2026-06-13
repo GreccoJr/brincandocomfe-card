@@ -1,0 +1,25 @@
+# Deploy no Render.com (free tier)
+# Como usar:
+#  1) Suba este repo no GitHub
+#  2) Render → New + → Blueprint → conecta este repo → "Apply"
+#  3) Render lê este arquivo, cria o service, builda o Docker, sobe
+#  4) Configure env CARD_TOKEN no painel se quiser proteção
+
+services:
+  - type: web
+    name: brincandocomfe-card
+    runtime: docker
+    region: oregon          # mais barato; ou "sao" se quiser SP (US$ mais caro)
+    plan: free              # free tier: 750h/mês, dorme após 15min sem uso
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: ALLOWED_ORIGIN
+        value: https://brincandocomfe.com.br
+      - key: WEBHOOK_URL
+        value: https://automatico.projeto.tecnoatende.com.br/webhook/reinokids-card-img2img
+      - key: CARD_TOKEN
+        sync: false         # você define manualmente no painel pra não vazar no repo
