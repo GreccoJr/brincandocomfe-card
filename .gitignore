@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+guest_out/
+trunfo_action_out/
+.DS_Store

@@ -22,6 +22,9 @@ RUN mkdir -p /fonts && \
 
 WORKDIR /app
 
+# Fonte Mulish ExtraBold (face única, livre OFL) — bold garantido, próxima do Avenir
+COPY fonts/Mulish-ExtraBold.ttf /fonts/Mulish-ExtraBold.ttf
+
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 

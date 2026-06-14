@@ -26,8 +26,9 @@ GOLD = (238, 202, 128); GOLD_HI = (255, 226, 150); WHITE = (255, 255, 255)
 # Ordem de prioridade de fontes (mais próximas de Avenir Next primeiro)
 def _find_font():
     candidates = [
+        "/fonts/Mulish-ExtraBold.ttf",                                 # Docker prod — Mulish ExtraBold (face única, SEMPRE bold; livre OFL, próxima do Avenir)
         "/System/Library/Fonts/Avenir Next.ttc",                       # macOS dev (referência original)
-        "/fonts/Mulish-Regular.ttf",                                    # Docker prod — geometric humanist próxima de Avenir
+        "/fonts/Mulish-Regular.ttf",                                    # Docker fallback livre — geometric humanist próxima de Avenir
         "/fonts/Manrope-Regular.ttf",                                   # Docker fallback
         "/fonts/Nunito-Regular.ttf",                                    # Docker legacy
         "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",              # Linux fallback
@@ -41,15 +42,40 @@ def _find_font():
 AV = _find_font()
 
 
-def font(sz, bold=False):
-    # macOS Avenir Next TTC: index 1 = Bold
-    if AV.endswith(".ttc"):
-        for idx in ([1, 0] if bold else [0]):
+_FACE_IDX = {}
+
+
+def _ttc_index(style_want):
+    """Acha o índice do rosto pelo NOME do estilo (determinístico — independe da
+    ordem que cada freetype/Pillow lê a coleção .ttc)."""
+    if not _FACE_IDX:
+        for i in range(0, 40):
             try:
-                return ImageFont.truetype(AV, sz, index=idx)
+                _, sty = ImageFont.truetype(AV, 10, index=i).getname()
             except Exception:
-                pass
+                break
+            _FACE_IDX.setdefault(sty, i)
+    prefs = {
+        "Bold": ["Bold", "Demi Bold", "Heavy", "Medium", "Regular"],
+        "Regular": ["Regular", "Medium", "Bold"],
+    }[style_want]
+    for s in prefs:
+        if s in _FACE_IDX:
+            return _FACE_IDX[s]
+    return 0
+
+
+def font(sz, bold=False):
+    # Arquivo de face única já BOLD (Mulish ExtraBold no Render / Avenir Bold extraído) — zero ambiguidade.
+    if AV.endswith("-ExtraBold.ttf") or AV.endswith("-Bold.ttf"):
         return ImageFont.truetype(AV, sz)
+    # Avenir Next .ttc (dev macOS): o design validado usa o peso BOLD em todo o texto.
+    # Seleciona o rosto Bold POR NOME (robusto — independe da ordem da coleção).
+    if AV.endswith(".ttc"):
+        try:
+            return ImageFont.truetype(AV, sz, index=_ttc_index("Bold"))
+        except Exception:
+            return ImageFont.truetype(AV, sz)
     # Mulish/Manrope/Nunito são variable fonts — peso configurável via font_variation_settings
     f = ImageFont.truetype(AV, sz)
     if bold:
