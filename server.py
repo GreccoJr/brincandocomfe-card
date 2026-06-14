@@ -163,17 +163,21 @@ class Handler(BaseHTTPRequestHandler):
             finally:
                 os.chdir(old_cwd)
 
-            # IMPORTANTE: enviamos só a PRÉVIA com marca d'água
+            # Prévia (marca d'água) p/ o navegador + LIMPA (alta) p/ o Vercel guardar no Blob
             with open(preview, "rb") as f:
                 prev_b64 = base64.b64encode(f.read()).decode()
+            with open(clean, "rb") as f:
+                clean_b64 = base64.b64encode(f.read()).decode()
 
-            # Limpa o cartoon (não precisamos mais)
-            try: os.remove(cart_path)
-            except: pass
+            # Limpa arquivos efêmeros (não precisamos mais)
+            for p in (cart_path, preview, clean):
+                try: os.remove(p)
+                except: pass
 
             return self._send(200, json.dumps({
                 "ok": True,
                 "preview_b64": prev_b64,
+                "clean_b64": clean_b64,   # versão sem marca d'água — o Vercel guarda no Blob por id
                 "id": uid,
             }))
 
