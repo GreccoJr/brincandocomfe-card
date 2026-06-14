@@ -187,3 +187,5 @@ Cada chamada = **1 imagem Gemini via webhook n8n** já configurado.
 - [ ] Cleanup automático de `/tmp/cards/` > 24h
 - [ ] Cache de cartoon por hash da foto (evita regerar se mesma foto sobe 2x)
 - [ ] Moderação automática (Google Vision SafeSearch) antes da geração
+
+# deploy trigger
