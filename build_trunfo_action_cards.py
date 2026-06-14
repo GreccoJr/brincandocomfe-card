@@ -23,10 +23,35 @@ OUT = os.path.join(BASE, "trunfo_action_out")
 os.makedirs(OUT, exist_ok=True)
 W, H = 760, 1060
 GOLD = (238, 202, 128); GOLD_HI = (255, 226, 150); WHITE = (255, 255, 255)
+# Avenir via Render Secret File (base64) — repo PÚBLICO, fonte fica privada no Render.
+# Decodifica o secret p/ /tmp e usa como fonte primária (= idêntico ao baralho validado).
+def _load_avenir_secret():
+    out = "/tmp/AvenirNext-Bold.ttf"
+    if os.path.exists(out):
+        return out
+    import base64 as _b64
+    paths = ["/etc/secrets/avenir-bold.b64", "avenir-bold.b64",
+             "/opt/render/project/src/avenir-bold.b64", os.environ.get("AVENIR_B64", "")]
+    for p in paths:
+        try:
+            if p and os.path.exists(p):
+                with open(p) as fh:
+                    with open(out, "wb") as o:
+                        o.write(_b64.b64decode(fh.read()))
+                return out
+        except Exception:
+            pass
+    return None
+
+
+_load_avenir_secret()
+
+
 # Ordem de prioridade de fontes (mais próximas de Avenir Next primeiro)
 def _find_font():
     candidates = [
-        "/fonts/Mulish-ExtraBold.ttf",                                 # Docker prod — Mulish ExtraBold (face única, SEMPRE bold; livre OFL, próxima do Avenir)
+        "/tmp/AvenirNext-Bold.ttf",                                    # Avenir via Secret File (decodificado no startup) = idêntico ao baralho
+        "/fonts/Mulish-ExtraBold.ttf",                                 # fallback — Mulish ExtraBold (face única, SEMPRE bold; livre OFL)
         "/System/Library/Fonts/Avenir Next.ttc",                       # macOS dev (referência original)
         "/fonts/Mulish-Regular.ttf",                                    # Docker fallback livre — geometric humanist próxima de Avenir
         "/fonts/Manrope-Regular.ttf",                                   # Docker fallback
